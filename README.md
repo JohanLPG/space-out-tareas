@@ -1,50 +1,45 @@
 # Space-out · Gestor de tareas diarias
 
-Aplicación web construida con **React 19 + Vite** que permite a cada usuario registrarse, iniciar sesión y gestionar sus tareas en un tablero por estados.
+Aplicación web construida con **React 19 + Vite + React Router** para registrar, organizar y gestionar tareas diarias.
 
-## Lo que la hace distinta: «Escribe como hablas»
-Escribe la tarea en una línea, en español, y Space-out la entiende mientras escribes:
+**Demo:** https://space-out-tareas.onrender.com
 
-> `Entregar informe el viernes !alta // con anexos`
-> → título «Entregar informe», vence el viernes, prioridad alta, descripción «con anexos».
+## Secciones
+Navegación fija (barra lateral en computador, barra inferior con «+» en el celular). Cada sección tiene un solo propósito:
 
-Entiende `hoy`, `mañana`, `pasado mañana`, `el viernes`, `el próximo lunes`, `en 3 días`, `la próxima semana`, `15 nov`, `30/11`, `!alta` / `!!` / `!baja` / `urgente`, `#progreso` y `// nota`. Atajos: **N** (nueva tarea rápida) y **/** (buscar).
+| Sección | Atajo | Para qué |
+|---|---|---|
+| **Hoy** | `1` | Tu siguiente paso, progreso del día, lo que toca hoy y la semana |
+| **Tablero** | `2` | Columnas Pendiente / En progreso / Completada (arrastrar y soltar) |
+| **Explorar** | `3` | Buscar cualquier tarea y filtrar por estado, prioridad, fecha y etiqueta |
+| **Mapa** | `4` | Lienzo interactivo: grupos por etiqueta/estado/prioridad, zoom, mover nodos |
 
-También incluye la cinta «Tu semana» (carga por día, clic para filtrar), tarjetas que se deslizan entre columnas (View Transitions API), «Deshacer» al completar o eliminar, y un aviso de «Día cerrado».
+Al tocar cualquier tarea se abre su **panel**, donde se edita todo en el lugar. **N** abre «Nueva tarea» y **/** busca en la sección actual. La primera vez aparece una guía de bienvenida (se repite desde «Guía rápida»).
 
-## Explorar: encontrar cualquier tarea
-- **Etiquetas:** escribe `#tesis`, `#universidad`… al crear la tarea (o edítalas en el formulario).
-- **Filtros siempre visibles** en el tablero, con aviso cuando una búsqueda tiene coincidencias ocultas por otros filtros.
-- **Apartado Explorar** (atajo **E**): búsqueda global + facetas (Estado, Prioridad, Fecha, Etiquetas) con conteos en vivo; resultados como **Lista** (tabla ordenable con resaltado) o **Mapa** (nodos agrupados por etiqueta).
+## Escribe como hablas
+> `Entregar informe el viernes !alta #tesis // con anexos`
+> → título «Entregar informe», vence el viernes, prioridad alta, etiqueta #tesis, notas «con anexos».
 
-## Funcionalidades
-- Registro e inicio de sesión (contraseñas con hash SHA-256 + sal, sesión persistente).
-- Crear tareas con título, descripción, fecha de vencimiento y prioridad.
-- Tablero organizado por estado: Pendiente, En progreso, Completada (también por arrastrar y soltar).
-- Editar y eliminar tareas (con confirmación).
-- Marcar como completada con un clic.
-- Búsqueda por título o descripción (ignora tildes) y filtros por estado y prioridad; orden por vencimiento, prioridad o recientes.
+Entiende `hoy`, `mañana`, `pasado mañana`, `el viernes`, `el próximo lunes`, `en 3 días`, `la próxima semana`, `15 nov`, `30/11`, `!alta` / `!!` / `!baja` / `urgente`, `#progreso`, `#hecha`, cualquier `#etiqueta` y `// notas`.
 
 ## Ejecutar en local
 ```bash
 npm install
 npm run dev
 ```
-Abrir http://localhost:5173
 
 ## Estructura
 ```
 src/
-  App.jsx                 Rutas (react-router-dom)
-  context/AuthContext.jsx Registro, login, logout y sesión
-  context/TaskContext.jsx CRUD de tareas con useReducer + persistencia
-  services/storage.js     Acceso a localStorage y hash de contraseñas
-  utils/tasks.js          Estados, prioridades, fechas, búsqueda y filtros
-  components/             Header, SummaryHeader, FilterBar, TaskColumn, TaskCard, TaskForm, Modal, ConfirmDialog, RouteGuards
-  pages/                  Login, Register, Dashboard
+  App.jsx                    Rutas anidadas (/hoy, /tablero, /explorar, /mapa)
+  context/                   AuthContext, TaskContext (useReducer), WorkspaceContext
+  pages/                     Login, Register, Today, Board, Explore, MapPage
+  components/                AppShell, Nav, TaskPanel, CreateSheet, QuickAdd, TaskCanvas, Tour, …
+  utils/                     parseTask (lenguaje natural), explore (facetas), mapLayout, tasks, motion
+  services/storage.js        localStorage + hash SHA-256 de contraseñas
 ```
 
-## Despliegue en Render
-El archivo `render.yaml` define un *Static Site*: build `npm install && npm run build`, carpeta publicada `dist`, y una regla de reescritura `/* → /index.html` para que funcionen las rutas del navegador.
+## Despliegue (Render)
+Static Site · build `npm install && npm run build` · carpeta `dist` · regla de reescritura `/*` → `/index.html`.
 
 > Nota: los datos se guardan en el `localStorage` del navegador (no hay servidor), por lo que cada navegador tiene sus propias cuentas y tareas.

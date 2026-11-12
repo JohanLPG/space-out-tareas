@@ -5,6 +5,9 @@ export const KEYS = {
   users: 'orden.users',
   session: 'orden.session',
   tasks: (userId) => `orden.tasks.${userId}`,
+  tour: (userId) => `orden.tour.${userId}`, // ¿ya vio la guía de bienvenida?
+  map: (userId) => `orden.map.${userId}`, // posiciones de nodos que el usuario movió en el mapa
+  mapHint: 'orden.mapHint',
 };
 
 export function read(key, fallback) {

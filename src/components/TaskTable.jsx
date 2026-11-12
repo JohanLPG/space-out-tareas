@@ -17,8 +17,8 @@ const ORDER = {
   dueDate: (t) => t.dueDate || '9999',
 };
 
-// Vista de tabla: ordenable por columna, con lo buscado resaltado.
-export default function TaskTable({ tasks, query, onEdit, onSetStatus, onTag }) {
+// Vista de tabla: ordenable por columna, con lo buscado resaltado. Cada fila abre el panel.
+export default function TaskTable({ tasks, query, onOpen, onSetStatus, onTag, selectedId }) {
   const [sort, setSort] = useState({ key: 'dueDate', dir: 1 });
 
   const rows = useMemo(() => {
@@ -33,7 +33,7 @@ export default function TaskTable({ tasks, query, onEdit, onSetStatus, onTag }) 
     return (
       <div className="tbl-empty">
         <p className="tbl-empty__title">Nada coincide.</p>
-        <p>Prueba con otra palabra o quita alguno de los filtros de arriba.</p>
+        <p>Prueba con otra palabra o quita alguno de los filtros.</p>
       </div>
     );
   }
@@ -43,16 +43,15 @@ export default function TaskTable({ tasks, query, onEdit, onSetStatus, onTag }) 
       <table className="tbl">
         <thead>
           <tr>
-            <th className="tbl__check" aria-label="Completar" />
+            <th className="tbl__check"><span className="sr-only">Completar</span></th>
             {COLUMNS.map((c) => (
-              <th key={c.id} className={`tbl__col tbl__col--${c.id}`} aria-sort={sort.key === c.id ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none'}>
+              <th key={c.id} className={`tbl__col--${c.id}`} aria-sort={sort.key === c.id ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none'}>
                 <button onClick={() => toggleSort(c.id)} className={sort.key === c.id ? 'is-sorted' : ''}>
                   {c.label}
                   <span className={`tbl__arrow ${sort.dir === -1 ? 'is-desc' : ''}`} aria-hidden="true">↑</span>
                 </button>
               </th>
             ))}
-            <th className="tbl__actions" aria-label="Acciones" />
           </tr>
         </thead>
         <tbody>
@@ -60,11 +59,19 @@ export default function TaskTable({ tasks, query, onEdit, onSetStatus, onTag }) 
             const done = t.status === 'completada';
             const descHit = q && fold(t.description).includes(q);
             return (
-              <tr key={t.id} className={done ? 'is-done' : ''} style={{ '--i': Math.min(i, 14) }} onDoubleClick={() => onEdit(t)}>
+              <tr
+                key={t.id}
+                className={`${done ? 'is-done' : ''} ${selectedId === t.id ? 'is-selected' : ''}`}
+                style={{ '--i': Math.min(i, 14) }}
+                onClick={() => onOpen(t.id)}
+                onKeyDown={(e) => e.key === 'Enter' && e.target === e.currentTarget && onOpen(t.id)}
+                tabIndex={0}
+                aria-label={`${t.title}. Abrir detalles`}
+              >
                 <td className="tbl__check">
                   <button
                     className={`check ${done ? 'is-checked' : ''}`}
-                    onClick={() => onSetStatus(t.id, done ? 'pendiente' : 'completada')}
+                    onClick={(e) => { e.stopPropagation(); onSetStatus(t.id, done ? 'pendiente' : 'completada'); }}
                     aria-label={done ? `Marcar «${t.title}» como pendiente` : `Marcar «${t.title}» como completada`}
                     aria-pressed={done}
                   >
@@ -73,13 +80,11 @@ export default function TaskTable({ tasks, query, onEdit, onSetStatus, onTag }) 
                 </td>
                 <td className="tbl__col--title">
                   <span className="tbl__title"><Highlight text={t.title} query={query} /></span>
-                  {t.description && (
-                    <span className={`tbl__desc ${descHit ? 'is-hit' : ''}`}><Highlight text={t.description} query={query} /></span>
-                  )}
+                  {descHit && <span className="tbl__desc"><Highlight text={t.description} query={query} /></span>}
                   {t.tags?.length > 0 && (
                     <span className="tbl__tags">
                       {t.tags.map((tag) => (
-                        <button key={tag} className="tagchip tagchip--btn" onClick={() => onTag(tag)}>
+                        <button key={tag} className="tagchip tagchip--btn" onClick={(e) => { e.stopPropagation(); onTag(tag); }}>
                           #<Highlight text={tag} query={query} />
                         </button>
                       ))}
@@ -93,11 +98,6 @@ export default function TaskTable({ tasks, query, onEdit, onSetStatus, onTag }) 
                   <span className="tbl__prio"><span className={`prio-dot prio-dot--${t.priority}`} /> {priorityLabel(t.priority)}</span>
                 </td>
                 <td className={`tbl__col--dueDate ${isOverdue(t) ? 'is-late' : ''}`}>{formatDue(t.dueDate)}</td>
-                <td className="tbl__actions">
-                  <button className="icon-btn icon-btn--sm" onClick={() => onEdit(t)} aria-label={`Editar «${t.title}»`}>
-                    <Icon name="edit" size={16} />
-                  </button>
-                </td>
               </tr>
             );
           })}

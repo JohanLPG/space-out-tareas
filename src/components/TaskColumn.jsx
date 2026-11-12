@@ -3,13 +3,13 @@ import { StatusGlyph } from './Icon.jsx';
 import TaskCard from './TaskCard.jsx';
 
 const EMPTY_COPY = {
-  pendiente: 'Nada esperando. Crea una tarea o arrastra una aquí.',
-  en_progreso: 'Nada en marcha. Arrastra una tarea para empezarla.',
-  completada: 'Aún no hay tareas terminadas. La primera es la que más cuesta.',
+  pendiente: 'Nada esperando por aquí.',
+  en_progreso: 'Arrastra aquí lo que empieces.',
+  completada: 'Lo que termines aparecerá aquí.',
 };
 
 // Columna del tablero: agrupa las tareas de un estado y acepta tareas arrastradas.
-export default function TaskColumn({ status, label, tasks, onDropTask, ...cardHandlers }) {
+export default function TaskColumn({ status, label, tasks, onDropTask, onOpen, onSetStatus, selectedId }) {
   const [over, setOver] = useState(false);
 
   return (
@@ -33,7 +33,7 @@ export default function TaskColumn({ status, label, tasks, onDropTask, ...cardHa
       <div className="column__list">
         {tasks.length === 0
           ? <p className="column__empty">{EMPTY_COPY[status]}</p>
-          : tasks.map((t) => <TaskCard key={t.id} task={t} {...cardHandlers} />)}
+          : tasks.map((t) => <TaskCard key={t.id} task={t} onOpen={onOpen} onSetStatus={onSetStatus} selected={selectedId === t.id} />)}
       </div>
     </section>
   );

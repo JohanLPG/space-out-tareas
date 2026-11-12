@@ -1,27 +1,31 @@
-import Icon, { StatusGlyph } from './Icon.jsx';
-import { formatDue, isOverdue, priorityLabel, STATUSES } from '../utils/tasks.js';
+import Icon from './Icon.jsx';
+import { formatDue, isOverdue } from '../utils/tasks.js';
 import { transitionName } from '../utils/motion.js';
 
-export default function TaskCard({ task, onEdit, onDelete, onSetStatus, onTag }) {
+// Tarjeta del tablero: solo lo esencial. Todo lo demás vive en el panel de la tarea.
+export default function TaskCard({ task, onOpen, onSetStatus, selected }) {
   const done = task.status === 'completada';
   const overdue = isOverdue(task);
-  const nextIndex = STATUSES.findIndex((s) => s.id === task.status) + 1;
-  const next = STATUSES[nextIndex];
+  const tags = task.tags ?? [];
 
   return (
     <article
-      className={`card card--${task.priority} ${done ? 'card--done' : ''}`}
+      className={`card card--${task.priority} ${done ? 'card--done' : ''} ${selected ? 'is-selected' : ''}`}
       style={{ viewTransitionName: transitionName(task.id) }}
       draggable
       onDragStart={(e) => {
         e.dataTransfer.setData('text/plain', task.id);
         e.dataTransfer.effectAllowed = 'move';
       }}
+      onClick={() => onOpen(task.id)}
+      onKeyDown={(e) => e.key === 'Enter' && e.target === e.currentTarget && onOpen(task.id)}
+      tabIndex={0}
+      aria-label={`${task.title}. Abrir detalles`}
     >
       <div className="card__top">
         <button
           className={`check ${done ? 'is-checked' : ''}`}
-          onClick={() => onSetStatus(task.id, done ? 'pendiente' : 'completada')}
+          onClick={(e) => { e.stopPropagation(); onSetStatus(task.id, done ? 'pendiente' : 'completada'); }}
           aria-label={done ? `Marcar «${task.title}» como pendiente` : `Marcar «${task.title}» como completada`}
           aria-pressed={done}
         >
@@ -30,39 +34,15 @@ export default function TaskCard({ task, onEdit, onDelete, onSetStatus, onTag })
         <h3 className="card__title">{task.title}</h3>
       </div>
 
-      {task.description && <p className="card__desc">{task.description}</p>}
-
       <div className="card__meta">
-        <span className={`tag tag--${task.priority}`}>
-          <span className={`prio-dot prio-dot--${task.priority}`} /> {priorityLabel(task.priority)}
+        {task.priority === 'alta' && !done && <span className="tag tag--alta"><span className="prio-dot prio-dot--alta" /> Alta</span>}
+        <span className={`due ${overdue ? 'due--late' : ''}`}>
+          <Icon name="calendar" size={13} /> {overdue ? `Vencida · ${formatDue(task.dueDate)}` : formatDue(task.dueDate)}
         </span>
-        <span className={`due ${overdue ? 'due--late' : ''}`} title={task.dueDate}>
-          <Icon name="calendar" size={14} /> {overdue ? `Vencida · ${formatDue(task.dueDate)}` : formatDue(task.dueDate)}
-        </span>
-        {task.tags?.map((tag) => (
-          <button key={tag} className="tagchip tagchip--btn" onClick={() => onTag?.(tag)} title={`Ver todo lo de #${tag}`}>#{tag}</button>
-        ))}
+        {tags.slice(0, 2).map((tag) => <span key={tag} className="tagchip">#{tag}</span>)}
+        {tags.length > 2 && <span className="tagchip">+{tags.length - 2}</span>}
+        {task.description && <Icon name="text" size={14} className="card__notes" aria-label="Tiene notas" />}
       </div>
-
-      <footer className="card__actions">
-        {next && !done ? (
-          <button className="link-btn" onClick={() => onSetStatus(task.id, next.id)}>
-            <StatusGlyph status={next.id} size={12} /> {next.id === 'completada' ? 'Completar' : 'Empezar'}
-          </button>
-        ) : (
-          <button className="link-btn" onClick={() => onSetStatus(task.id, 'pendiente')}>
-            <StatusGlyph status="pendiente" size={12} /> Reabrir
-          </button>
-        )}
-        <div className="card__icons">
-          <button className="icon-btn icon-btn--sm" onClick={() => onEdit(task)} aria-label={`Editar «${task.title}»`}>
-            <Icon name="edit" size={16} />
-          </button>
-          <button className="icon-btn icon-btn--sm icon-btn--danger" onClick={() => onDelete(task)} aria-label={`Eliminar «${task.title}»`}>
-            <Icon name="trash" size={16} />
-          </button>
-        </div>
-      </footer>
     </article>
   );
 }

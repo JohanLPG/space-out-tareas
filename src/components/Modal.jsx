@@ -10,7 +10,8 @@ export default function Modal({ title, onClose, children, size = 'md' }) {
     document.addEventListener('keydown', onKey);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    ref.current?.querySelector('input, textarea, select, button')?.focus();
+    const panel = ref.current;
+    (panel?.querySelector('input, textarea, select') ?? panel?.querySelector('button'))?.focus();
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prevOverflow;

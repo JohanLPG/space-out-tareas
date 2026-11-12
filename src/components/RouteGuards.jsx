@@ -17,5 +17,5 @@ export function ProtectedRoute({ children }) {
 // Login y registro: si ya hay sesión, se redirige al tablero.
 export function PublicOnlyRoute({ children }) {
   const { user } = useAuth();
-  return user ? <Navigate to="/" replace /> : children;
+  return user ? <Navigate to="/hoy" replace /> : children;
 }
